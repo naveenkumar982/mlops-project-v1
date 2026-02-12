@@ -1,141 +1,173 @@
-<p align="center">
-  <img width="80%" src="images/banner-2025.jpg" alt="MLOps Zoomcamp">
-</p>
+## Code snippets
 
-<h1 align="center">
-    <strong>MLOps Zoomcamp: A Free 9-Week Course on Productionizing ML Services</strong>
-</h1>
+### Building and running Docker images
 
-<p align="center">
-MLOps (machine learning operations) is a must-know skill for many data professionals. Master the fundamentals of MLOps, from training and experimentation to deployment and monitoring.
-</p>
+```bash
+docker build -t stream-model-duration:v2 .
+```
 
-<p align="center">
-<a href="https://airtable.com/shrCb8y6eTbPKwSTL"><img src="https://user-images.githubusercontent.com/875246/185755203-17945fd1-6b64-46f2-8377-1011dcb1a444.png" height="50" /></a>
-</p>
+```bash
+docker run -it --rm \
+    -p 8080:8080 \
+    -e PREDICTIONS_STREAM_NAME="ride_predictions" \
+    -e RUN_ID="e1efc53e9bd149078b0c12aeaa6365df" \
+    -e TEST_RUN="True" \
+    -e AWS_DEFAULT_REGION="eu-west-1" \
+    stream-model-duration:v2
+```
 
-<p align="center">
-<a href="https://datatalks.club/slack.html">Join Slack</a> •
-<a href="https://app.slack.com/client/T01ATQK62F8/C01FABYF2RG">#course-mlops-zoomcamp Channel</a> •
-<a href="https://t.me/dtc_courses">Telegram Announcements</a> •
-<a href="https://www.youtube.com/playlist?list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK">Course Playlist</a> •
-<a href="https://datatalks.club/faq/mlops-zoomcamp.html">FAQ</a> •
-<a href="https://ctt.ac/fH67W">Tweet about the Course</a>
-</p>
+Mounting the model folder:
 
-## How to Take MLOps Zoomcamp
+```
+docker run -it --rm \
+    -p 8080:8080 \
+    -e PREDICTIONS_STREAM_NAME="ride_predictions" \
+    -e RUN_ID="Test123" \
+    -e MODEL_LOCATION="/app/model" \
+    -e TEST_RUN="True" \
+    -e AWS_DEFAULT_REGION="eu-west-1" \
+    -v $(pwd)/model:/app/model \
+    stream-model-duration:v2
+```
 
-### 2025 Cohort
-- **Start Date**: May 5, 2025
-- **Register Here**: [Sign up](https://airtable.com/shrCb8y6eTbPKwSTL)
-- **Stay Updated**: Subscribe to our [Google Calendar](https://calendar.google.com/calendar/?cid=M3Jzbmg0ZDA2aHVsY2M1ZjcyNDJtODNyMTRAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ) (Desktop only)
+### Specifying endpoint URL
 
-### Self-Paced Learning
-All course materials are freely available for independent study. Follow these steps:
-1. Watch the course videos.
-2. Join the [Slack community](https://datatalks.club/slack.html).
-3. Refer to the [FAQ document](https://datatalks.club/faq/mlops-zoomcamp.html) for guidance.
+```bash
+aws --endpoint-url=http://localhost:4566 \
+    kinesis list-streams
+```
 
-## Syllabus
-The course consists of structured modules, hands-on workshops, and a final project to reinforce your learning. Each module introduces core MLOps concepts and tools.
+```bash
+aws --endpoint-url=http://localhost:4566 \
+    kinesis create-stream \
+    --stream-name ride_predictions \
+    --shard-count 1
+```
 
-### Prerequisites
-To get the most out of this course, you should have prior experience with:
-- Python
-- Docker
-- Command line basics
-- Machine learning (e.g., through [ML Zoomcamp](https://github.com/alexeygrigorev/mlbookcamp-code/tree/master/course-zoomcamp))
-- 1+ year of programming experience
+```bash
+aws  --endpoint-url=http://localhost:4566 \
+    kinesis     get-shard-iterator \
+    --shard-id ${SHARD} \
+    --shard-iterator-type TRIM_HORIZON \
+    --stream-name ${PREDICTIONS_STREAM_NAME} \
+    --query 'ShardIterator'
+```
 
-## Modules
+### Unable to locate credentials
 
-### [Module 1: Introduction](01-intro)
-- What is MLOps?
-- MLOps maturity model
-- NY Taxi dataset (our running example)
-- Why MLOps is essential
-- Course structure & environment setup
-- Homework
+If you get `'Unable to locate credentials'` error, add these
+env variables to the `docker-compose.yaml` file:
 
-### [Module 2: Experiment Tracking & Model Management](02-experiment-tracking)
-- Introduction to experiment tracking
-- MLflow basics
-- Model saving and loading
-- Model registry
-- Hands-on MLflow exercises
-- Homework
+```yaml
+- AWS_ACCESS_KEY_ID=abc
+- AWS_SECRET_ACCESS_KEY=xyz
+```
 
-### [Module 3: Orchestration & ML Pipelines](03-orchestration)
+### Make
 
-- Workflow orchestration
-- Homework
+Without make:
 
-### [Module 4: Model Deployment](04-deployment)
-- Deployment strategies: online (web, streaming) vs. offline (batch)
-- Deploying with Flask (web service)
-- Streaming deployment with AWS Kinesis & Lambda
-- Batch scoring for offline processing
-- Homework
+```
+isort .
+black .
+pylint --recursive=y .
+pytest tests/
+```
 
-### [Module 5: Model Monitoring](05-monitoring)
-- Monitoring ML-based services
-- Web service monitoring with Prometheus, Evidently, and Grafana
-- Batch job monitoring with Prefect, MongoDB, and Evidently
-- Homework
+With make:
 
-### [Module 6: Best Practices](06-best-practices)
-- Unit and integration testing
-- Linting, formatting, and pre-commit hooks
-- CI/CD with GitHub Actions
-- Infrastructure as Code (Terraform)
-- Homework
-
-### [Final Project](07-project/)
-- End-to-end project integrating all course concepts
-
-## Community & Support
-
-### Getting Help on Slack
-
-Join the [`#course-mlops-zoomcamp`](https://app.slack.com/client/T01ATQK62F8/C02R98X7DS9) channel on [DataTalks.Club Slack](https://datatalks.club/slack.html) for discussions, troubleshooting, and networking.
-
-To keep discussions organized:
-- Follow [our guidelines](asking-questions.md) when posting questions.
-- Review the [community guidelines](https://datatalks.club/slack/guidelines.html).
-
-## Instructors
-
-- [Cristian Martinez](https://www.linkedin.com/in/cristian-javier-martinez-09bb7031/)
-- [Alexey Grigorev](https://www.linkedin.com/in/agrigorev/)
-- [Emeli Dral](https://www.linkedin.com/in/emelidral/)
+```
+make quality_checks
+make test
+```
 
 
-## Sponsors & Supporters
+To prepare the project, run 
 
-Interested in supporting our community? Reach out to [alexey@datatalks.club](mailto:alexey@datatalks.club).
+```bash
+make setup
+```
 
-## About DataTalks.Club
 
-<p align="center">
-  <img width="40%" src="https://github.com/user-attachments/assets/1243a44a-84c8-458d-9439-aaf6f3a32d89" alt="DataTalks.Club">
-</p>
+### IaC
+w/ Terraform
 
-<p align="center">
-<a href="https://datatalks.club/">DataTalks.Club</a> is a global online community of data enthusiasts. It's a place to discuss data, learn, share knowledge, ask and answer questions, and support each other.
-</p>
+#### Setup
 
-<p align="center">
-<a href="https://datatalks.club/">Website</a> •
-<a href="https://datatalks.club/slack.html">Join Slack Community</a> •
-<a href="https://us19.campaign-archive.com/home/?u=0d7822ab98152f5afc118c176&id=97178021aa">Newsletter</a> •
-<a href="http://lu.ma/dtc-events">Upcoming Events</a> •
-<a href="https://calendar.google.com/calendar/?cid=ZjhxaWRqbnEwamhzY3A4ODA5azFlZ2hzNjBAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ">Google Calendar</a> •
-<a href="https://www.youtube.com/@DataTalksClub/featured">YouTube</a> •
-<a href="https://github.com/DataTalksClub">GitHub</a> •
-<a href="https://www.linkedin.com/company/datatalks-club/">LinkedIn</a> •
-<a href="https://twitter.com/DataTalksClub">Twitter</a>
-</p>
+**Installation**:
 
-All the activity at DataTalks.Club mainly happens on [Slack](https://datatalks.club/slack.html). We post updates there and discuss different aspects of data, career questions, and more.
+* [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) (both versions are fine)
+* [terraform client](https://www.terraform.io/downloads)
 
-At DataTalksClub, we organize online events, community activities, and free courses. You can learn more about what we do at [DataTalksClub Community Navigation](https://www.notion.so/DataTalksClub-Community-Navigation-bf070ad27ba44bf6bbc9222082f0e5a8?pvs=21).
+**Configuration**:
+
+1. If you've already created an AWS account, head to the IAM section, generate your secret-key, and download it locally. 
+[Instructions](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html)
+
+2. [Configure]((https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html)) `aws-cli` with your downloaded AWS secret keys:
+      ```shell
+         $ aws configure
+         AWS Access Key ID [None]: xxx
+         AWS Secret Access Key [None]: xxx
+         Default region name [None]: eu-west-1
+         Default output format [None]:
+      ```
+
+3. Verify aws config:
+      ```shell
+        $ aws sts get-caller-identity
+      ```
+
+4. (Optional) Configuring with `aws profile`: [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html) and [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#using-an-external-credentials-process) 
+
+<br>
+
+#### Execution
+
+
+1. To create infra (manually, in order to test on staging env)
+    ```shell
+    # Initialize state file (.tfstate)
+    terraform init
+
+    # Check changes to new infra plan
+    terraform plan -var-file=vars/stg.tfvars
+    ```
+
+    ```shell
+    # Create new infra
+    terraform apply -var-file=vars/stg.tfvars
+    ```
+
+2. To prepare aws env (copy model artifacts, set env-vars for lambda etc.):
+    ```
+    . ./scripts/deploy_manual.sh
+    ```
+
+3. To test the pipeline end-to-end with our new cloud infra:
+    ```
+    . ./scripts/test_cloud_e2e.sh
+    ``` 
+
+4. And then check on CloudWatch logs. Or try `get-records` on the `output_kinesis_stream` (refer to `integration_test`)
+
+5. Destroy infra after use:
+    ```shell
+    # Delete infra after your work, to avoid costs on any running services
+    terraform destroy
+    ```
+
+<br>
+
+### CI/CD
+
+1. Create a PR (feature branch): `.github/workflows/ci-tests.yml`
+    * Env setup, Unit test, Integration test, Terraform plan
+2. Merge PR to `develop`: `.github/workflows/cd-deploy.yml`
+    * Terraform plan, Terraform apply, Docker build & ECR push, Update Lambda config
+
+### Notes
+
+* Unfortunately, the `RUN_ID` (if set via the `ENV` or `ARG` in `Dockerfile`), disappears during lambda invocation.
+We'll set it via `aws lambda update-function-configuration` CLI command (refer to `deploy_manual.sh` or `.github/workflows/cd-deploy.yml`)
+    
