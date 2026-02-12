@@ -19,7 +19,23 @@ def get_model_location(run_id):
     return model_location
 
 
+class MockModel:
+    """A mock model for local testing without MLflow/S3."""
+
+    def predict(self, features):
+        # Returns a fixed ride duration prediction (~10.5 minutes)
+        return [10.5]
+
+
 def load_model(run_id):
+    test_run = os.getenv('TEST_RUN', 'False') == 'True'
+    model_location = os.getenv('MODEL_LOCATION')
+
+    # Use mock model if in test mode and no real model is configured
+    if test_run and run_id is None and model_location is None:
+        print("TEST_RUN mode: Using MockModel (no real MLflow model)")
+        return MockModel()
+
     model_path = get_model_location(run_id)
     model = mlflow.pyfunc.load_model(model_path)
     return model
