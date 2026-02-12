@@ -1,9 +1,9 @@
 boto3
 mlflow
-scikit-learn==1.0.2
+scikit-learn
 pytest
 deepdiff
-pylint==2.14.4
+pylint
 black
 isort
 pre-commit

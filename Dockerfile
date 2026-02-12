@@ -1,11 +1,10 @@
 FROM public.ecr.aws/lambda/python:3.9
 
 RUN pip install -U pip
-RUN pip install pipenv
 
-COPY [ "Pipfile", "Pipfile.lock", "./" ]
+COPY [ "requirements.txt", "./" ]
 
-RUN pipenv install --system --deploy
+RUN pip install -r requirements.txt
 
 COPY [ "lambda_function.py", "model.py", "./" ]
 
